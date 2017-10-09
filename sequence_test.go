@@ -235,3 +235,36 @@ func TestString(t *testing.T) {
 		}
 	}
 }
+
+func TestFormat(t *testing.T) {
+	time1, _ := time.Parse("2006-01-02", "2006-01-01")
+
+	var testCases = []struct {
+		msg        string
+		seq        Sequence
+		format     string
+		expStrings []string
+	}{
+		{"testing format sequence in \"\" format: ",
+			Sequence{
+				seq: []time.Time{time1},
+			},
+			"Mon 01.02.2006",
+			[]string{"Sun 01.01.2006"},
+		},
+		{"testing format sequence in \"\" format: ",
+			Sequence{
+				seq: []time.Time{time1},
+			},
+			"January 01. 2006",
+			[]string{"January 01. 2006"},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.Format(tc.format)
+		if !reflect.DeepEqual(seq, tc.expStrings) {
+			t.Errorf("%v Format(%v)\nexpected %#v\nactual   %#v", tc.msg, tc.format, tc.expStrings, seq)
+		}
+	}
+}

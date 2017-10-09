@@ -98,3 +98,14 @@ func (s Sequence) String() []string {
 
 	return strings
 }
+
+// Format returns the sequence as slice with a string repesentation of the date in the specified layout.
+func (s Sequence) Format(layout string) []string {
+	var strings = make([]string, len(s.seq))
+
+	for k, v := range s.seq {
+		strings[k] = v.Format(layout)
+	}
+
+	return strings
+}

@@ -56,7 +56,7 @@ Returns:
 9. 2017-09-30 Sat
 ```
 
-The sequence methods are chainable, wich allows creation and retrieving of the sequence slice in one go.
+The sequence methods are chainable, which allows creation and retrieving of the sequence slice in one go.
 
 ```go
 seq := dateseq.New().Duration(10).Seq()
@@ -69,8 +69,15 @@ seq := dateseq.New().Duration(10).String()
 fmt.Println(seq)
 ```
 
-Returns:
+Returns the dates in format YYYY-MM-DD:
 
 ```bash
 [2017-10-09 2017-10-08 2017-10-07 2017-10-06 2017-10-05]
+```
+
+For a custom format use the `Format(layout string)` method, which returns the string in a layout defined by the `time` package.
+
+```go
+seq := dateseq.New().Duration(10).Format("Jan 01. 2006")
+fmt.Println(seq)
 ```
