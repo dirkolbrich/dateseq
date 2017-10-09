@@ -72,10 +72,98 @@ func TestExclWeekends(t *testing.T) {
 	}
 }
 
+func TestAsc(t *testing.T) {
+	time1, _ := time.Parse("2006-01-02", "2006-01-01")
+	time2, _ := time.Parse("2006-01-02", "2006-01-02")
+	time3, _ := time.Parse("2006-01-02", "2006-01-03")
+
+	var testCases = []struct {
+		msg    string
+		seq    Sequence
+		expSeq Sequence
+	}{
+		{"testing ascending sorting with asc sorted entries",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+		},
+		{"testing ascending sorting with desc sorted entries",
+			Sequence{
+				seq: []time.Time{time3, time2, time1},
+			},
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+		},
+		{"testing ascending sorting with nil entries",
+			Sequence{
+				seq: []time.Time{},
+			},
+			Sequence{
+				seq: []time.Time{},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.Asc()
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v Asc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+		}
+	}
+}
+
+func TestDesc(t *testing.T) {
+	time1, _ := time.Parse("2006-01-02", "2006-01-01")
+	time2, _ := time.Parse("2006-01-02", "2006-01-02")
+	time3, _ := time.Parse("2006-01-02", "2006-01-03")
+
+	var testCases = []struct {
+		msg    string
+		seq    Sequence
+		expSeq Sequence
+	}{
+		{"testing descending sorting with desc sorted entries",
+			Sequence{
+				seq: []time.Time{time3, time2, time1},
+			},
+			Sequence{
+				seq: []time.Time{time3, time2, time1},
+			},
+		},
+		{"testing descending sorting with asc sorted entries",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			Sequence{
+				seq: []time.Time{time3, time2, time1},
+			},
+		},
+		{"testing descending sorting with nil entries",
+			Sequence{
+				seq: []time.Time{},
+			},
+			Sequence{
+				seq: []time.Time{},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.Desc()
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v Desc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+		}
+	}
+}
+
 func TestSeq(t *testing.T) {
-	time1, _ := time.Parse("2006-01-02", "2017-10-09")
-	time2, _ := time.Parse("2006-01-02", "2017-10-08")
-	time3, _ := time.Parse("2006-01-02", "2017-10-07")
+	time1, _ := time.Parse("2006-01-02", "2006-01-01")
+	time2, _ := time.Parse("2006-01-02", "2006-01-02")
+	time3, _ := time.Parse("2006-01-02", "2006-01-03")
 
 	var testCases = []struct {
 		msg    string
