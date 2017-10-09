@@ -8,7 +8,7 @@ A package to create a sequence series of daily dates, written in golang.
 
 ```go
 seq := dateseq.New()
-seq.Duration(10)
+seq = seq.Duration(10)
 
 for k, v := range seq.Seq() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
@@ -34,8 +34,7 @@ Weekends can be included with `InclWeekends()` into the sequence series. `ExclWe
 
 ```go
 seq := dateseq.New()
-seq.InclWeekends()
-seq.Duration(10)
+seq = seq.InclWeekends().Duration(10)
 
 for k, v := range seq.Seq() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
@@ -55,4 +54,10 @@ Returns:
 7. 2017-10-02 Mon
 8. 2017-10-01 Sun
 9. 2017-09-30 Sat
+```
+
+The sequence methods are chainable, wich allows creation and retrieving of the sequence slice in one go.
+
+```go
+seq := dateseq.New().Duration(10).Seq()
 ```

@@ -20,4 +20,10 @@ func main() {
 	for k, v := range seq.Seq() {
 		fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
 	}
+
+	fmt.Println("Creation and retrieval of the sequence in one step:")
+	s := dateseq.New().InclWeekends().Duration(5).Seq()
+	for k, v := range s {
+		fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
+	}
 }
