@@ -61,3 +61,16 @@ The sequence methods are chainable, wich allows creation and retrieving of the s
 ```go
 seq := dateseq.New().Duration(10).Seq()
 ```
+
+Need a slice with only the string representations of the dates?
+
+```go
+seq := dateseq.New().Duration(10).String()
+fmt.Println(seq)
+```
+
+Returns:
+
+```bash
+[2017-10-09 2017-10-08 2017-10-07 2017-10-06 2017-10-05]
+```

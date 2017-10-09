@@ -197,3 +197,41 @@ func TestSeq(t *testing.T) {
 		}
 	}
 }
+
+func TestString(t *testing.T) {
+	time1, _ := time.Parse("2006-01-02", "2006-01-01")
+	time2, _ := time.Parse("2006-01-02", "2006-01-02")
+	time3, _ := time.Parse("2006-01-02", "2006-01-03")
+
+	var testCases = []struct {
+		msg        string
+		seq        Sequence
+		expStrings []string
+	}{
+		{"testing return sequenz with single entry",
+			Sequence{
+				seq: []time.Time{time1},
+			},
+			[]string{"2006-01-01"},
+		},
+		{"testing return sequenz with multiple entries",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			[]string{"2006-01-01", "2006-01-02", "2006-01-03"},
+		},
+		{"testing return sequenz with nil entries",
+			Sequence{
+				seq: []time.Time{},
+			},
+			[]string{},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.String()
+		if !reflect.DeepEqual(seq, tc.expStrings) {
+			t.Errorf("%v String()\nexpected %#v\nactual   %#v", tc.msg, tc.expStrings, seq)
+		}
+	}
+}

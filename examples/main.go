@@ -26,4 +26,8 @@ func main() {
 	for k, v := range s {
 		fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
 	}
+
+	fmt.Println("Slice with a simple string representation of the dates:")
+	strings := dateseq.New().InclWeekends().Duration(5).String()
+	fmt.Println(strings)
 }

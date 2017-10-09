@@ -87,3 +87,14 @@ func (s Sequence) Desc() Sequence {
 func (s Sequence) Seq() []time.Time {
 	return s.seq
 }
+
+// String returns the sequence as slice with a simple string repesentation of the date in the format YYYY-MM-DD.
+func (s Sequence) String() []string {
+	var strings = make([]string, len(s.seq))
+
+	for k, v := range s.seq {
+		strings[k] = v.Format("2006-01-02")
+	}
+
+	return strings
+}
