@@ -12,24 +12,26 @@ type Sequence struct {
 }
 
 // New returns a Sequence ready for use.
-func New() *Sequence {
-	return &Sequence{}
+func New() Sequence {
+	return Sequence{}
 }
 
 // InclWeekends includes Saturday and Sunday into the sequence.
-func (s *Sequence) InclWeekends() {
+func (s Sequence) InclWeekends() Sequence {
 	s.weekends = true
+	return s
 }
 
 // ExclWeekends excludes Saturday and Sunday from the sequence.
 // This is the default setting for weekends.
-func (s *Sequence) ExclWeekends() {
+func (s Sequence) ExclWeekends() Sequence {
 	s.weekends = false
+	return s
 }
 
 // Duration creates a date sequence with the specified length of days ending now.
 // Calls to Duration will reset the sequence slice to nil before generating an new sequence.
-func (s *Sequence) Duration(i int) {
+func (s Sequence) Duration(i int) Sequence {
 	// get current date
 	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 
@@ -50,9 +52,11 @@ func (s *Sequence) Duration(i int) {
 		s.seq = append(s.seq, t)
 		t = t.AddDate(0, 0, -1)
 	}
+
+	return s
 }
 
 // Seq returns the sequence slice.
-func (s *Sequence) Seq() []time.Time {
+func (s Sequence) Seq() []time.Time {
 	return s.seq
 }

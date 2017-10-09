@@ -9,10 +9,10 @@ import (
 func TestNew(t *testing.T) {
 	var testCases = []struct {
 		msg    string
-		expSeq *Sequence
+		expSeq Sequence
 	}{
 		{"testing create sequence",
-			&Sequence{},
+			Sequence{},
 		},
 	}
 
@@ -27,23 +27,23 @@ func TestNew(t *testing.T) {
 func TestInclWeekends(t *testing.T) {
 	var testCases = []struct {
 		msg    string
-		seq    *Sequence
-		expSeq *Sequence
+		seq    Sequence
+		expSeq Sequence
 	}{
 		{"testing setting weekends from false to true",
-			&Sequence{},
-			&Sequence{weekends: true},
+			Sequence{},
+			Sequence{weekends: true},
 		},
 		{"testing setting weekends from already true to true",
-			&Sequence{weekends: true},
-			&Sequence{weekends: true},
+			Sequence{weekends: true},
+			Sequence{weekends: true},
 		},
 	}
 
 	for _, tc := range testCases {
-		tc.seq.InclWeekends()
-		if !reflect.DeepEqual(tc.seq, tc.expSeq) {
-			t.Errorf("%v InclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, tc.seq)
+		seq := tc.seq.InclWeekends()
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v InclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
@@ -51,23 +51,23 @@ func TestInclWeekends(t *testing.T) {
 func TestExclWeekends(t *testing.T) {
 	var testCases = []struct {
 		msg    string
-		seq    *Sequence
-		expSeq *Sequence
+		seq    Sequence
+		expSeq Sequence
 	}{
 		{"testing setting weekends from true to false",
-			&Sequence{weekends: true},
-			&Sequence{weekends: false},
+			Sequence{weekends: true},
+			Sequence{weekends: false},
 		},
 		{"testing setting weekends from already false to false",
-			&Sequence{weekends: false},
-			&Sequence{weekends: false},
+			Sequence{weekends: false},
+			Sequence{weekends: false},
 		},
 	}
 
 	for _, tc := range testCases {
-		tc.seq.ExclWeekends()
-		if !reflect.DeepEqual(tc.seq, tc.expSeq) {
-			t.Errorf("%v ExclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, tc.seq)
+		seq := tc.seq.ExclWeekends()
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v ExclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
@@ -79,23 +79,23 @@ func TestSeq(t *testing.T) {
 
 	var testCases = []struct {
 		msg    string
-		seq    *Sequence
+		seq    Sequence
 		expSeq []time.Time
 	}{
 		{"testing return sequenz with single entry",
-			&Sequence{
+			Sequence{
 				seq: []time.Time{time1},
 			},
 			[]time.Time{time1},
 		},
 		{"testing return sequenz with multiple entries",
-			&Sequence{
+			Sequence{
 				seq: []time.Time{time1, time2, time3},
 			},
 			[]time.Time{time1, time2, time3},
 		},
 		{"testing return sequenz with nil entries",
-			&Sequence{
+			Sequence{
 				seq: []time.Time{},
 			},
 			[]time.Time{},
