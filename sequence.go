@@ -30,9 +30,9 @@ func (s Sequence) ExclWeekends() Sequence {
 	return s
 }
 
-// Duration creates a date sequence with the specified length of days ending now.
-// Calls to Duration will reset the sequence slice to nil before generating an new sequence.
-func (s Sequence) Duration(i int) Sequence {
+// Steps creates a date sequence with the specified length of days ending now.
+// Calls to Steps will reset the sequence slice to nil before generating an new sequence.
+func (s Sequence) Steps(i int) Sequence {
 	// get current date
 	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 

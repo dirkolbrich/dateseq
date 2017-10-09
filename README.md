@@ -10,7 +10,7 @@ A package to create a sequence series of daily dates, written in golang.
 
 ```go
 seq := dateseq.New()
-seq = seq.Duration(10)
+seq = seq.Steps(10)
 
 for k, v := range seq.Seq() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
@@ -36,7 +36,7 @@ Weekends can be included with `InclWeekends()` into the sequence series. `ExclWe
 
 ```go
 seq := dateseq.New()
-seq = seq.InclWeekends().Duration(10)
+seq = seq.InclWeekends().Steps(10)
 
 for k, v := range seq.Seq() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
@@ -61,13 +61,13 @@ Returns:
 The sequence methods are chainable, which allows creation and retrieving of the sequence slice in one go.
 
 ```go
-seq := dateseq.New().Duration(10).Seq()
+seq := dateseq.New().Steps(10).Seq()
 ```
 
 Need a slice with only the string representations of the dates?
 
 ```go
-seq := dateseq.New().Duration(10).String()
+seq := dateseq.New().Steps(10).String()
 fmt.Println(seq)
 ```
 
@@ -80,6 +80,6 @@ Returns the dates in format YYYY-MM-DD:
 For a custom format use the `Format(layout string)` method, which returns the string in a layout defined by the `time` package.
 
 ```go
-seq := dateseq.New().Duration(10).Format("Jan 01. 2006")
+seq := dateseq.New().Steps(10).Format("Jan 01. 2006")
 fmt.Println(seq)
 ```
