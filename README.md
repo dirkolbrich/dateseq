@@ -17,6 +17,32 @@ for k, v := range seq.Seq() {
 }
 ```
 
+Returns a sequence of dates from the current date counted backwards (*assuming, you start this this programm on 2017-10-09*):
+
+```bash
+0. 2017-10-09 Mon
+1. 2017-10-08 Sun
+2. 2017-10-07 Sat
+3. 2017-10-06 Fri
+4. 2017-10-05 Thu
+5. 2017-10-04 Wed
+6. 2017-10-03 Tue
+7. 2017-10-02 Mon
+8. 2017-10-01 Sun
+9. 2017-09-30 Sat
+```
+
+Weekends can be excluded with `ExclWeekends()` from the sequence series. `InclWeekends()` will include them again, which is also the default behavior.
+
+```go
+seq := dateseq.New()
+seq = seq.ExclWeekends().Steps(10)
+
+for k, v := range seq.Seq() {
+    fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
+}
+```
+
 Returns:
 
 ```bash
@@ -30,32 +56,6 @@ Returns:
 7. 2017-09-28 Thu
 8. 2017-09-27 Wed
 9. 2017-09-26 Tue
-```
-
-Weekends can be included with `InclWeekends()` into the sequence series. `ExclWeekends()` will exclude them again, which is also the default behavior.
-
-```go
-seq := dateseq.New()
-seq = seq.InclWeekends().Steps(10)
-
-for k, v := range seq.Seq() {
-    fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
-}
-```
-
-Returns:
-
-```bash
-0. 2017-10-09 Mon
-1. 2017-10-08 Sun
-2. 2017-10-07 Sat
-3. 2017-10-06 Fri
-4. 2017-10-05 Thu
-5. 2017-10-04 Wed
-6. 2017-10-03 Tue
-7. 2017-10-02 Mon
-8. 2017-10-01 Sun
-9. 2017-09-30 Sat
 ```
 
 The sequence methods are chainable, which allows creation and retrieving of the sequence slice in one go.
