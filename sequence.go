@@ -88,7 +88,8 @@ func (s Sequence) Seq() []time.Time {
 	return s.seq
 }
 
-// String returns the sequence as slice with a simple string repesentation of the date in the format YYYY-MM-DD.
+// String returns the sequence as slice with a simple string repesentation
+// of the date in the format YYYY-MM-DD.
 func (s Sequence) String() []string {
 	var strings = make([]string, len(s.seq))
 

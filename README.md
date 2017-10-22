@@ -81,5 +81,4 @@ For a custom format use the `Format(layout string)` method, which returns the st
 
 ```go
 seq := dateseq.New().Steps(10).Format("Jan 01. 2006")
-fmt.Println(seq)
 ```

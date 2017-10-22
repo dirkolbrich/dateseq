@@ -268,3 +268,56 @@ func TestFormat(t *testing.T) {
 		}
 	}
 }
+
+func TestStandardSequenz(t *testing.T) {
+	current := time.Now().Format("2006-01-02")
+	currentDate, _ := time.Parse("2006-01-02", current)
+
+	var testCases = []struct {
+		msg    string
+		steps  int
+		seq    Sequence
+		expSeq Sequence
+	}{
+		{"testing standard sequence:",
+			5,
+			Sequence{weekends: true},
+			Sequence{
+				weekends: true,
+				seq: []time.Time{
+					currentDate,
+					currentDate.AddDate(0, 0, -1),
+					currentDate.AddDate(0, 0, -2),
+					currentDate.AddDate(0, 0, -3),
+					currentDate.AddDate(0, 0, -4),
+				},
+			},
+		},
+		{"testing standard sequence with already set seq:",
+			5,
+			Sequence{
+				weekends: true,
+				seq: []time.Time{
+					currentDate,
+				},
+			},
+			Sequence{
+				weekends: true,
+				seq: []time.Time{
+					currentDate,
+					currentDate.AddDate(0, 0, -1),
+					currentDate.AddDate(0, 0, -2),
+					currentDate.AddDate(0, 0, -3),
+					currentDate.AddDate(0, 0, -4),
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.Steps(tc.steps)
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+		}
+	}
+}
