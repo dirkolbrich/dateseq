@@ -14,7 +14,7 @@ type Sequence struct {
 
 // New returns a Sequence ready for use.
 func New() Sequence {
-	return Sequence{}
+	return Sequence{weekends: true}
 }
 
 // InclWeekends includes Saturday and Sunday into the sequence.

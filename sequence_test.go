@@ -12,7 +12,7 @@ func TestNew(t *testing.T) {
 		expSeq Sequence
 	}{
 		{"testing create sequence",
-			Sequence{},
+			Sequence{weekends: true},
 		},
 	}
 
@@ -208,19 +208,19 @@ func TestString(t *testing.T) {
 		seq        Sequence
 		expStrings []string
 	}{
-		{"testing return sequenz with single entry",
+		{"testing return sequence with single entry",
 			Sequence{
 				seq: []time.Time{time1},
 			},
 			[]string{"2006-01-01"},
 		},
-		{"testing return sequenz with multiple entries",
+		{"testing return sequence with multiple entries",
 			Sequence{
 				seq: []time.Time{time1, time2, time3},
 			},
 			[]string{"2006-01-01", "2006-01-02", "2006-01-03"},
 		},
-		{"testing return sequenz with nil entries",
+		{"testing return sequence with nil entries",
 			Sequence{
 				seq: []time.Time{},
 			},
