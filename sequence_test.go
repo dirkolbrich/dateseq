@@ -24,7 +24,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestInclWeekends(t *testing.T) {
+func TestIncludeWeekends(t *testing.T) {
 	var testCases = []struct {
 		msg    string
 		seq    Sequence
@@ -43,12 +43,12 @@ func TestInclWeekends(t *testing.T) {
 	for _, tc := range testCases {
 		seq := tc.seq.IncludeWeekends()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
-			t.Errorf("%v InclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+			t.Errorf("%v IncludeWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
 
-func TestExclWeekends(t *testing.T) {
+func TestExcludeWeekends(t *testing.T) {
 	var testCases = []struct {
 		msg    string
 		seq    Sequence
@@ -67,7 +67,105 @@ func TestExclWeekends(t *testing.T) {
 	for _, tc := range testCases {
 		seq := tc.seq.ExcludeWeekends()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
-			t.Errorf("%v ExclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+			t.Errorf("%v ExcludeWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+		}
+	}
+}
+
+func TestExclude(t *testing.T) {
+	time1, _ := time.Parse("2006-01-02", "2006-01-01")
+	time2, _ := time.Parse("2006-01-02", "2006-01-02")
+	time3, _ := time.Parse("2006-01-02", "2006-01-03")
+	time4, _ := time.Parse("2006-01-02", "2006-01-04")
+
+	var testCases = []struct {
+		msg     string
+		seq     Sequence
+		exclude []string
+		expSeq  Sequence
+	}{
+		{"testing exclude with empty exclude list",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			[]string{},
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+		},
+		{"testing exclude from empty sequence",
+			Sequence{},
+			[]string{"2006-01-01"},
+			Sequence{
+				exclude: []time.Time{time1},
+			},
+		},
+		{"testing exclude from single sequence with single matching date",
+			Sequence{
+				seq: []time.Time{time1},
+			},
+			[]string{"2006-01-01"},
+			Sequence{
+				exclude: []time.Time{time1},
+				seq:     []time.Time{},
+			},
+		},
+		{"testing exclude from sequence with single non matching date",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			[]string{"2006-01-04"},
+			Sequence{
+				exclude: []time.Time{time4},
+				seq:     []time.Time{time1, time2, time3},
+			},
+		},
+		{"testing exclude from start of sequence with single matching date",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			[]string{"2006-01-01"},
+			Sequence{
+				exclude: []time.Time{time1},
+				seq:     []time.Time{time2, time3},
+			},
+		},
+		{"testing exclude from within of sequence with single matching date",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			[]string{"2006-01-02"},
+			Sequence{
+				exclude: []time.Time{time2},
+				seq:     []time.Time{time1, time3},
+			},
+		},
+		{"testing exclude from end of sequence with single matching date",
+			Sequence{
+				seq: []time.Time{time1, time2, time3},
+			},
+			[]string{"2006-01-03"},
+			Sequence{
+				exclude: []time.Time{time3},
+				seq:     []time.Time{time1, time2},
+			},
+		},
+		{"testing exclude from with multiple matching date",
+			Sequence{
+				seq: []time.Time{time1, time2, time3, time4},
+			},
+			[]string{"2006-01-03", "2006-01-02"},
+			Sequence{
+				exclude: []time.Time{time2, time3},
+				seq:     []time.Time{time1, time4},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.Exclude(tc.exclude)
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v Exclude(%+v)\nexpected %#v\nactual   %#v", tc.msg, tc.exclude, tc.expSeq, seq)
 		}
 	}
 }
@@ -291,6 +389,7 @@ func TestStandardSequence(t *testing.T) {
 					currentDate.AddDate(0, 0, +3),
 					currentDate.AddDate(0, 0, +4),
 				},
+				steps: 5,
 			},
 		},
 		{"testing standard sequence with negative steps:",
@@ -305,6 +404,7 @@ func TestStandardSequence(t *testing.T) {
 					currentDate.AddDate(0, 0, -3),
 					currentDate.AddDate(0, 0, -4),
 				},
+				steps: -5,
 			},
 		},
 		{"testing standard sequence with zero steps:",
@@ -329,6 +429,7 @@ func TestStandardSequence(t *testing.T) {
 					currentDate.AddDate(0, 0, +3),
 					currentDate.AddDate(0, 0, +4),
 				},
+				steps: 5,
 			},
 		},
 	}
