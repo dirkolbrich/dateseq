@@ -60,6 +60,19 @@ Returns:
 9. 2017-09-26 Tue
 ```
 
+Exclude some specific dates with `Exclude(list []string)`.
+
+```go
+seq := dateseq.New()
+exclude := []string{
+    "2017-12-25",
+    "2017-12-26",
+}
+
+seq = seq.Steps(10).Exclude(exclude)
+
+```
+
 The sequence methods are chainable, which allows creation and retrieving of the sequence slice in one go.
 
 ```go
@@ -79,7 +92,7 @@ Returns the dates in format YYYY-MM-DD:
 [2017-10-09 2017-10-08 2017-10-07 2017-10-06 2017-10-05]
 ```
 
-For a custom format use the `Format(layout string)` method, which returns the string in a layout defined by the `time` package.
+For a custom output format use the `Format(layout string)` method, which returns the string in a layout defined by the `time` package.
 
 ```go
 seq := dateseq.New().Steps(10).Format("Jan 01. 2006")
