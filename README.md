@@ -8,11 +8,13 @@
 
 A package to create a sequence series of daily dates, written in golang.
 
+Sequence is an immutable struct, each operations returns a new Sequence and leaves the original untouched.
+
 ```go
 seq := dateseq.New()
 seq = seq.Steps(10)
 
-for k, v := range seq.Seq() {
+for k, v := range seq.Sequence() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
 }
 ```
@@ -32,13 +34,13 @@ Returns a sequence of dates from the current date counted backwards (*assuming, 
 9. 2017-09-30 Sat
 ```
 
-Weekends can be excluded with `ExclWeekends()` from the sequence series. `InclWeekends()` will include them again, which is also the default behavior.
+Weekends can be excluded with `ExcludeWeekends()` from the sequence series. `IncludeWeekends()` will include them again, which is also the default behavior.
 
 ```go
 seq := dateseq.New()
-seq = seq.ExclWeekends().Steps(10)
+seq = seq.ExcludeWeekends().Steps(10)
 
-for k, v := range seq.Seq() {
+for k, v := range seq.Sequence() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
 }
 ```
@@ -61,7 +63,7 @@ Returns:
 The sequence methods are chainable, which allows creation and retrieving of the sequence slice in one go.
 
 ```go
-seq := dateseq.New().Steps(10).Seq()
+seq := dateseq.New().Steps(10).Sequence()
 ```
 
 Need a slice with only the string representations of the dates?

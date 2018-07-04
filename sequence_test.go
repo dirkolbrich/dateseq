@@ -41,7 +41,7 @@ func TestInclWeekends(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		seq := tc.seq.InclWeekends()
+		seq := tc.seq.IncludeWeekends()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
 			t.Errorf("%v InclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
@@ -65,14 +65,14 @@ func TestExclWeekends(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		seq := tc.seq.ExclWeekends()
+		seq := tc.seq.ExcludeWeekends()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
 			t.Errorf("%v ExclWeekends()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
 
-func TestAsc(t *testing.T) {
+func TestSortAsc(t *testing.T) {
 	time1, _ := time.Parse("2006-01-02", "2006-01-01")
 	time2, _ := time.Parse("2006-01-02", "2006-01-02")
 	time3, _ := time.Parse("2006-01-02", "2006-01-03")
@@ -109,14 +109,14 @@ func TestAsc(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		seq := tc.seq.Asc()
+		seq := tc.seq.SortAsc()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
 			t.Errorf("%v Asc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
 
-func TestDesc(t *testing.T) {
+func TestSortDesc(t *testing.T) {
 	time1, _ := time.Parse("2006-01-02", "2006-01-01")
 	time2, _ := time.Parse("2006-01-02", "2006-01-02")
 	time3, _ := time.Parse("2006-01-02", "2006-01-03")
@@ -153,14 +153,14 @@ func TestDesc(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		seq := tc.seq.Desc()
+		seq := tc.seq.SortDesc()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
 			t.Errorf("%v Desc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
 
-func TestSeq(t *testing.T) {
+func TestSequence(t *testing.T) {
 	time1, _ := time.Parse("2006-01-02", "2006-01-01")
 	time2, _ := time.Parse("2006-01-02", "2006-01-02")
 	time3, _ := time.Parse("2006-01-02", "2006-01-03")
@@ -191,7 +191,7 @@ func TestSeq(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		seq := tc.seq.Seq()
+		seq := tc.seq.Sequence()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
 			t.Errorf("%v Seq()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
@@ -269,7 +269,7 @@ func TestFormat(t *testing.T) {
 	}
 }
 
-func TestStandardSequenz(t *testing.T) {
+func TestStandardSequence(t *testing.T) {
 	current := time.Now().Format("2006-01-02")
 	currentDate, _ := time.Parse("2006-01-02", current)
 
@@ -279,8 +279,22 @@ func TestStandardSequenz(t *testing.T) {
 		seq    Sequence
 		expSeq Sequence
 	}{
-		{"testing standard sequence:",
+		{"testing standard sequence with positive steps:",
 			5,
+			Sequence{weekends: true},
+			Sequence{
+				weekends: true,
+				seq: []time.Time{
+					currentDate,
+					currentDate.AddDate(0, 0, +1),
+					currentDate.AddDate(0, 0, +2),
+					currentDate.AddDate(0, 0, +3),
+					currentDate.AddDate(0, 0, +4),
+				},
+			},
+		},
+		{"testing standard sequence with negative steps:",
+			-5,
 			Sequence{weekends: true},
 			Sequence{
 				weekends: true,
@@ -292,6 +306,11 @@ func TestStandardSequenz(t *testing.T) {
 					currentDate.AddDate(0, 0, -4),
 				},
 			},
+		},
+		{"testing standard sequence with zero steps:",
+			0,
+			Sequence{weekends: true},
+			Sequence{weekends: true},
 		},
 		{"testing standard sequence with already set seq:",
 			5,
@@ -305,10 +324,10 @@ func TestStandardSequenz(t *testing.T) {
 				weekends: true,
 				seq: []time.Time{
 					currentDate,
-					currentDate.AddDate(0, 0, -1),
-					currentDate.AddDate(0, 0, -2),
-					currentDate.AddDate(0, 0, -3),
-					currentDate.AddDate(0, 0, -4),
+					currentDate.AddDate(0, 0, +1),
+					currentDate.AddDate(0, 0, +2),
+					currentDate.AddDate(0, 0, +3),
+					currentDate.AddDate(0, 0, +4),
 				},
 			},
 		},

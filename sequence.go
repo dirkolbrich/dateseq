@@ -1,4 +1,4 @@
-// Package dateseq creates a sequence series of daily dates
+// Package dateseq creates a sequence series of daily dates.
 package dateseq
 
 import (
@@ -17,15 +17,15 @@ func New() Sequence {
 	return Sequence{weekends: true}
 }
 
-// InclWeekends includes Saturday and Sunday into the sequence.
-func (s Sequence) InclWeekends() Sequence {
+// IncludeWeekends includes Saturday and Sunday into the sequence.
+func (s Sequence) IncludeWeekends() Sequence {
 	s.weekends = true
 	return s
 }
 
-// ExclWeekends excludes Saturday and Sunday from the sequence.
+// ExcludeWeekends excludes Saturday and Sunday from the sequence.
 // This is the default setting for weekends.
-func (s Sequence) ExclWeekends() Sequence {
+func (s Sequence) ExcludeWeekends() Sequence {
 	s.weekends = false
 	return s
 }
@@ -41,24 +41,42 @@ func (s Sequence) Steps(i int) Sequence {
 		s.seq = []time.Time{}
 	}
 
-	for k := 0; k < i; k++ {
-		if !s.weekends {
-			if (t.Weekday() == 0) || (t.Weekday() == 6) {
-				t = t.AddDate(0, 0, -1)
-				k--
-				continue
+	switch {
+	case i > 0:
+		for k := 0; k < i; k++ {
+			if !s.weekends {
+				if (t.Weekday() == 0) || (t.Weekday() == 6) {
+					t = t.AddDate(0, 0, +1)
+					k--
+					continue
+				}
 			}
+
+			s.seq = append(s.seq, t)
+			t = t.AddDate(0, 0, +1)
 		}
 
-		s.seq = append(s.seq, t)
-		t = t.AddDate(0, 0, -1)
+	case i < 0:
+		for k := 0; k > i; k-- {
+			if !s.weekends {
+				if (t.Weekday() == 0) || (t.Weekday() == 6) {
+					t = t.AddDate(0, 0, -1)
+					k++
+					continue
+				}
+			}
+
+			s.seq = append(s.seq, t)
+			t = t.AddDate(0, 0, -1)
+		}
+	default: // i == 0
 	}
 
 	return s
 }
 
-// Asc sorts a slice of dates in ascending order, i.e. 2006-01-02 comes before 2006-01-03
-func (s Sequence) Asc() Sequence {
+// SortAsc sorts a slice of dates in ascending order, i.e. 2006-01-02 comes before 2006-01-03
+func (s Sequence) SortAsc() Sequence {
 	sort.Slice(s.seq, func(i, j int) bool {
 		d1 := s.seq[i]
 		d2 := s.seq[j]
@@ -70,8 +88,8 @@ func (s Sequence) Asc() Sequence {
 	return s
 }
 
-// Desc sorts a slice of dates in descending order, i.e. 2006-01-01 comes after 2006-01-02
-func (s Sequence) Desc() Sequence {
+// SortDesc sorts a slice of dates in descending order, i.e. 2006-01-01 comes after 2006-01-02
+func (s Sequence) SortDesc() Sequence {
 	sort.Slice(s.seq, func(i, j int) bool {
 		d1 := s.seq[i]
 		d2 := s.seq[j]
@@ -83,8 +101,8 @@ func (s Sequence) Desc() Sequence {
 	return s
 }
 
-// Seq returns the sequence slice.
-func (s Sequence) Seq() []time.Time {
+// Sequence returns the sequence slice.
+func (s Sequence) Sequence() []time.Time {
 	return s.seq
 }
 
