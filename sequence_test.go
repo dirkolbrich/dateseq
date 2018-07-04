@@ -220,6 +220,49 @@ func TestSteps(t *testing.T) {
 				steps: -3,
 			},
 		},
+		{"testing single multiple positive steps exclude weekends",
+			Sequence{
+				weekends: false,
+			}, 5,
+			Sequence{
+				seq: []time.Time{
+					currentDate,
+					currentDate.AddDate(0, 0, +1),
+					currentDate.AddDate(0, 0, +2),
+					currentDate.AddDate(0, 0, +5),
+					currentDate.AddDate(0, 0, +6),
+				},
+				steps: 5,
+			},
+		},
+		{"testing single multiple negative steps exclude weekends",
+			Sequence{}, -5,
+			Sequence{
+				seq: []time.Time{
+					currentDate.AddDate(0, 0, -6),
+					currentDate.AddDate(0, 0, -5),
+					currentDate.AddDate(0, 0, -2),
+					currentDate.AddDate(0, 0, -1),
+					currentDate,
+				},
+				steps: -5,
+			},
+		},
+		{"testing single multiple steps with already set sequence",
+			Sequence{
+				seq: []time.Time{
+					currentDate.AddDate(0, 0, +10),
+				},
+			}, 3,
+			Sequence{
+				seq: []time.Time{
+					currentDate,
+					currentDate.AddDate(0, 0, +1),
+					currentDate.AddDate(0, 0, +2),
+				},
+				steps: 3,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -423,6 +466,90 @@ func TestFormat(t *testing.T) {
 		seq := tc.seq.Format(tc.format)
 		if !reflect.DeepEqual(seq, tc.expStrings) {
 			t.Errorf("%v Format(%v)\nexpected %#v\nactual   %#v", tc.msg, tc.format, tc.expStrings, seq)
+		}
+	}
+}
+
+func TestRemoveWeekends(t *testing.T) {
+	sun, _ := time.Parse("2006-01-02", "2006-01-01")
+	mon, _ := time.Parse("2006-01-02", "2006-01-02")
+	thue, _ := time.Parse("2006-01-02", "2006-01-03")
+	wed, _ := time.Parse("2006-01-02", "2006-01-04")
+	thur, _ := time.Parse("2006-01-02", "2006-01-04")
+	fri, _ := time.Parse("2006-01-02", "2006-01-06")
+	sat, _ := time.Parse("2006-01-02", "2006-01-07")
+
+	var testCases = []struct {
+		msg     string
+		list    []time.Time
+		expList []time.Time
+	}{
+		{"testing empty list",
+			[]time.Time{},
+			[]time.Time{},
+		},
+		{"testing list with single weekday",
+			[]time.Time{mon},
+			[]time.Time{mon},
+		},
+		{"testing list with single weekend day",
+			[]time.Time{sun},
+			[]time.Time{},
+		},
+		{"testing list with complete week",
+			[]time.Time{sun, mon, thue, wed, thur, fri, sat},
+			[]time.Time{mon, thue, wed, thur, fri},
+		},
+	}
+
+	for _, tc := range testCases {
+		list := removeWeekendFromDateList(tc.list)
+		if !reflect.DeepEqual(list, tc.expList) {
+			t.Errorf("%v removeWeekendFromDateList(%v)\nexpected %v\nactual   %v", tc.msg, tc.list, tc.expList, list)
+		}
+	}
+}
+
+func TestAddWeekends(t *testing.T) {
+	thur, _ := time.Parse("2006-01-02", "2006-01-05")
+	fri, _ := time.Parse("2006-01-02", "2006-01-06")
+	sat, _ := time.Parse("2006-01-02", "2006-01-07")
+	sun, _ := time.Parse("2006-01-02", "2006-01-08")
+	mon, _ := time.Parse("2006-01-02", "2006-01-09")
+	thue, _ := time.Parse("2006-01-02", "2006-01-10")
+	wed, _ := time.Parse("2006-01-02", "2006-01-11")
+
+	var testCases = []struct {
+		msg     string
+		input   []time.Time
+		expList []time.Time
+	}{
+		{"testing empty list",
+			[]time.Time{},
+			[]time.Time{},
+		},
+		{"testing list with single weekday",
+			[]time.Time{mon},
+			[]time.Time{mon},
+		},
+		{"testing list with single weekend day",
+			[]time.Time{sun},
+			[]time.Time{sun},
+		},
+		{"testing list with mixed week and weekend day",
+			[]time.Time{fri, sat},
+			[]time.Time{fri, sat},
+		},
+		{"testing list with missing weekend",
+			[]time.Time{thur, fri, mon, thue, wed},
+			[]time.Time{thur, fri, sat, sun, mon, thue, wed},
+		},
+	}
+
+	for _, tc := range testCases {
+		list := addWeekendToDateList(tc.input)
+		if !reflect.DeepEqual(list, tc.expList) {
+			t.Errorf("%v addWeekendToDateList(%v)\nexpected %v\nactual   %v", tc.msg, tc.input, tc.expList, list)
 		}
 	}
 }

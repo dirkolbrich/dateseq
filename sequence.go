@@ -21,9 +21,11 @@ func New() Sequence {
 	return Sequence{weekends: true}
 }
 
-// IncludeWeekends includes Saturday and Sunday into the sequence.
+// IncludeWeekends includes Saturday and Sunday back into the sequence.
 func (s Sequence) IncludeWeekends() Sequence {
 	s.weekends = true
+	s.seq = addWeekendToDateList(s.seq)
+
 	return s
 }
 
@@ -31,6 +33,8 @@ func (s Sequence) IncludeWeekends() Sequence {
 // Weekends are included by default.
 func (s Sequence) ExcludeWeekends() Sequence {
 	s.weekends = false
+	s.seq = removeWeekendFromDateList(s.seq)
+
 	return s
 }
 
@@ -170,30 +174,6 @@ func (s Sequence) SortDesc() Sequence {
 	return s
 }
 
-func sortAsc(slice []time.Time) []time.Time {
-	sort.Slice(slice, func(i, j int) bool {
-		d1 := slice[i]
-		d2 := slice[j]
-
-		// sort by date
-		return d1.Before(d2)
-	})
-
-	return slice
-}
-
-func sortDesc(slice []time.Time) []time.Time {
-	sort.Slice(slice, func(i, j int) bool {
-		d1 := slice[i]
-		d2 := slice[j]
-
-		// sort by date
-		return d2.Before(d1)
-	})
-
-	return slice
-}
-
 // Sequence returns the sequence slice.
 func (s Sequence) Sequence() []time.Time {
 	return s.seq
@@ -220,4 +200,76 @@ func (s Sequence) Format(layout string) []string {
 	}
 
 	return strings
+}
+
+func removeWeekendFromDateList(list []time.Time) []time.Time {
+	if len(list) == 0 {
+		return list
+	}
+
+	for i := 0; i < len(list); i++ {
+		date := list[i]
+
+		if (date.Weekday() == 0) || (date.Weekday() == 6) {
+			list = append(list[:i], list[i+1:]...)
+			i-- // decrease index since slice is shifted
+		}
+	}
+	return list
+}
+
+func addWeekendToDateList(list []time.Time) []time.Time {
+	if len(list) == 0 {
+		return list
+	}
+	// lets sort that input list
+	list = sortAsc(list)
+
+	for i := 0; i < len(list); i++ {
+		current := list[i]
+
+		// if current day is a Friday and the next day is a Monday, add the weekend
+		if (current.Weekday() == 5) && (list[i+1].Weekday() == 1) {
+			// set saturday and sunday
+			sat := current.AddDate(0, 0, +1)
+			sun := current.AddDate(0, 0, +2)
+
+			// createw an new list an spilt the old list into before and after
+			newList := []time.Time{}
+			listBeforeWeekend := append([]time.Time(nil), list[:i+1]...)
+			listAfterWeekend := append([]time.Time(nil), list[i+1:]...)
+
+			// build new list
+			newList = append(listBeforeWeekend, sat, sun)
+			newList = append(newList, listAfterWeekend...)
+			i = i + 2 // increase index since slice is shifted
+			list = newList
+		}
+
+	}
+	return list
+}
+
+func sortAsc(slice []time.Time) []time.Time {
+	sort.Slice(slice, func(i, j int) bool {
+		d1 := slice[i]
+		d2 := slice[j]
+
+		// sort by date
+		return d1.Before(d2)
+	})
+
+	return slice
+}
+
+func sortDesc(slice []time.Time) []time.Time {
+	sort.Slice(slice, func(i, j int) bool {
+		d1 := slice[i]
+		d2 := slice[j]
+
+		// sort by date
+		return d2.Before(d1)
+	})
+
+	return slice
 }
