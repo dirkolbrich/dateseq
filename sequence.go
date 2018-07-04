@@ -120,6 +120,8 @@ func (s Sequence) Steps(i int) Sequence {
 	default: // i == 0
 	}
 
+	s.seq = sortAsc(s.seq)
+
 	return s
 }
 

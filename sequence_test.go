@@ -170,6 +170,66 @@ func TestExclude(t *testing.T) {
 	}
 }
 
+func TestSteps(t *testing.T) {
+	current := time.Now().Format("2006-01-02")
+	currentDate, _ := time.Parse("2006-01-02", current)
+
+	var testCases = []struct {
+		msg    string
+		seq    Sequence
+		steps  int
+		expSeq Sequence
+	}{
+		{"testing zero steps",
+			Sequence{}, 0,
+			Sequence{},
+		},
+		{"testing single positive step",
+			Sequence{}, 1,
+			Sequence{
+				seq:   []time.Time{currentDate},
+				steps: 1,
+			},
+		},
+		{"testing single multiple positive steps",
+			Sequence{}, 3,
+			Sequence{
+				seq: []time.Time{
+					currentDate,
+					currentDate.AddDate(0, 0, +1),
+					currentDate.AddDate(0, 0, +2),
+				},
+				steps: 3,
+			},
+		},
+		{"testing single negative step",
+			Sequence{}, -1,
+			Sequence{
+				seq:   []time.Time{currentDate},
+				steps: -1,
+			},
+		},
+		{"testing single multiple negative steps",
+			Sequence{}, -3,
+			Sequence{
+				seq: []time.Time{
+					currentDate.AddDate(0, 0, -2),
+					currentDate.AddDate(0, 0, -1),
+					currentDate,
+				},
+				steps: -3,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.Steps(tc.steps)
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v Steps()\nexpected %v %#v\nactual   %v %#v", tc.msg, tc.expSeq.String(), tc.expSeq, seq.String(), seq)
+		}
+	}
+}
+
 func TestSortAsc(t *testing.T) {
 	time1, _ := time.Parse("2006-01-02", "2006-01-01")
 	time2, _ := time.Parse("2006-01-02", "2006-01-02")
@@ -209,7 +269,7 @@ func TestSortAsc(t *testing.T) {
 	for _, tc := range testCases {
 		seq := tc.seq.SortAsc()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
-			t.Errorf("%v Asc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+			t.Errorf("%v SortAsc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
@@ -253,7 +313,7 @@ func TestSortDesc(t *testing.T) {
 	for _, tc := range testCases {
 		seq := tc.seq.SortDesc()
 		if !reflect.DeepEqual(seq, tc.expSeq) {
-			t.Errorf("%v Desc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
+			t.Errorf("%v SortDesc()\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
@@ -363,81 +423,6 @@ func TestFormat(t *testing.T) {
 		seq := tc.seq.Format(tc.format)
 		if !reflect.DeepEqual(seq, tc.expStrings) {
 			t.Errorf("%v Format(%v)\nexpected %#v\nactual   %#v", tc.msg, tc.format, tc.expStrings, seq)
-		}
-	}
-}
-
-func TestStandardSequence(t *testing.T) {
-	current := time.Now().Format("2006-01-02")
-	currentDate, _ := time.Parse("2006-01-02", current)
-
-	var testCases = []struct {
-		msg    string
-		steps  int
-		seq    Sequence
-		expSeq Sequence
-	}{
-		{"testing standard sequence with positive steps:",
-			5,
-			Sequence{weekends: true},
-			Sequence{
-				weekends: true,
-				seq: []time.Time{
-					currentDate,
-					currentDate.AddDate(0, 0, +1),
-					currentDate.AddDate(0, 0, +2),
-					currentDate.AddDate(0, 0, +3),
-					currentDate.AddDate(0, 0, +4),
-				},
-				steps: 5,
-			},
-		},
-		{"testing standard sequence with negative steps:",
-			-5,
-			Sequence{weekends: true},
-			Sequence{
-				weekends: true,
-				seq: []time.Time{
-					currentDate,
-					currentDate.AddDate(0, 0, -1),
-					currentDate.AddDate(0, 0, -2),
-					currentDate.AddDate(0, 0, -3),
-					currentDate.AddDate(0, 0, -4),
-				},
-				steps: -5,
-			},
-		},
-		{"testing standard sequence with zero steps:",
-			0,
-			Sequence{weekends: true},
-			Sequence{weekends: true},
-		},
-		{"testing standard sequence with already set seq:",
-			5,
-			Sequence{
-				weekends: true,
-				seq: []time.Time{
-					currentDate,
-				},
-			},
-			Sequence{
-				weekends: true,
-				seq: []time.Time{
-					currentDate,
-					currentDate.AddDate(0, 0, +1),
-					currentDate.AddDate(0, 0, +2),
-					currentDate.AddDate(0, 0, +3),
-					currentDate.AddDate(0, 0, +4),
-				},
-				steps: 5,
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		seq := tc.seq.Steps(tc.steps)
-		if !reflect.DeepEqual(seq, tc.expSeq) {
-			t.Errorf("%v\nexpected %#v\nactual   %#v", tc.msg, tc.expSeq, seq)
 		}
 	}
 }
