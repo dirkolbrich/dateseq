@@ -11,18 +11,18 @@ func main() {
 
 	fmt.Println("Standard sequence with weekends:")
 	seq = seq.Steps(10)
-	for k, v := range seq.Seq() {
+	for k, v := range seq.Sequence() {
 		fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
 	}
 
 	fmt.Println("Sequence excluding weekends:")
-	seq = seq.ExclWeekends().Steps(10)
-	for k, v := range seq.Seq() {
+	seq = seq.ExcludeWeekends().Steps(10)
+	for k, v := range seq.Sequence() {
 		fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
 	}
 
 	fmt.Println("Creation and retrieval of the sequence in one step:")
-	s := dateseq.New().Steps(5).Seq()
+	s := dateseq.New().Steps(5).Sequence()
 	for k, v := range s {
 		fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
 	}
