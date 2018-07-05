@@ -6,25 +6,45 @@ import (
 	"time"
 )
 
-// Sequence represents a slice of dates.
+// Sequence represents a slice of dates with attached manipulation operations.
 type Sequence struct {
-	seq      []time.Time
-	exclude  []time.Time
-	fromDate time.Time
-	toDate   time.Time
-	steps    int
-	weekends bool
+	// Now represent the time the sequence is created by default.
+	// All date sequence operations reference to this point in time.
+	// Now can be set to any point in time.
+	Now time.Time
+
+	// From represent a point in time, **from** which all date sequences are directed
+	// with default order ascending.
+	From time.Time
+
+	// To represents a point in time, **to** which all date sequences are directed
+	// with default order ascending.
+	To time.Time
+
+	// Weekends signal if weekends are included within the date sequence, default on New() is true.
+	Weekends bool
+
+	steps     int
+	ascending bool
+	seq       []time.Time
+	exclude   []time.Time
 }
 
-// New returns a Sequence ready for use.
+// New returns a Sequence with some sensible default options ready for use.
 func New() Sequence {
-	return Sequence{weekends: true}
+	now, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+
+	return Sequence{
+		Now:       now,
+		Weekends:  true,
+		ascending: true,
+	}
 }
 
 // IncludeWeekends includes Saturday and Sunday back into the sequence.
 func (s Sequence) IncludeWeekends() Sequence {
-	s.weekends = true
-	s.seq = addWeekendToDateList(s.seq)
+	s.Weekends = true
+	s.seq = addWeekendToSequence(s.seq)
 
 	return s
 }
@@ -32,8 +52,8 @@ func (s Sequence) IncludeWeekends() Sequence {
 // ExcludeWeekends excludes Saturday and Sunday from the sequence.
 // Weekends are included by default.
 func (s Sequence) ExcludeWeekends() Sequence {
-	s.weekends = false
-	s.seq = removeWeekendFromDateList(s.seq)
+	s.Weekends = false
+	s.seq = removeWeekendFromSequence(s.seq)
 
 	return s
 }
@@ -79,14 +99,14 @@ func (s Sequence) Exclude(list []string) Sequence {
 	return s
 }
 
-// Steps creates a date sequence with the specified length of days ending now.
-// The signing of steps will determine, if the sequence goes back of forward in time.
-// Calls to Steps will reset the sequence slice to nil before generating an new sequence.
-func (s Sequence) Steps(i int) Sequence {
+// WithSteps creates a date sequence with the specified length of days.
+// The signing of steps will determine, if the sequence goes back or forward in time.
+// Calls to WithSteps will reset the sequence slice to nil before generating an new sequence.
+func (s Sequence) WithSteps(i int) Sequence {
 	s.steps = i
 
 	// get current date
-	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	t := s.Now
 
 	// reset the seqeuence slice
 	if len(s.seq) != 0 {
@@ -96,7 +116,7 @@ func (s Sequence) Steps(i int) Sequence {
 	switch {
 	case i > 0:
 		for k := 0; k < i; k++ {
-			if !s.weekends {
+			if !s.Weekends {
 				if (t.Weekday() == 0) || (t.Weekday() == 6) {
 					t = t.AddDate(0, 0, +1)
 					k--
@@ -110,7 +130,7 @@ func (s Sequence) Steps(i int) Sequence {
 
 	case i < 0:
 		for k := 0; k > i; k-- {
-			if !s.weekends {
+			if !s.Weekends {
 				if (t.Weekday() == 0) || (t.Weekday() == 6) {
 					t = t.AddDate(0, 0, -1)
 					k++
@@ -134,13 +154,26 @@ func (s Sequence) Steps(i int) Sequence {
 // from that date. The direction back or forward in time will be determined by the sign of steps.
 // If the sequence is not already generated, this methof will generate it.
 func (s Sequence) FromDate(date string) Sequence {
-	// parse date and set fromDate field
-	t, _ := time.Parse("2006-01-02", date)
-	s.fromDate = t
+	// validate date string
+	if date == "" {
+		return s
+	}
 
-	// steps are set
-	if s.steps != 0 {
-		// fill up the sequence
+	// parse date and set From field
+	from, _ := time.Parse("2006-01-02", date)
+	s.From = from
+
+	// create sequence
+	seq := createSequence(from, s.Now)
+
+	switch {
+	case from.Before(s.Now): // from before now
+		s.seq = seq
+	case from.After(s.Now): // from after now
+		seq = sortDesc(seq)
+		s.seq = seq
+	default:
+		return s
 	}
 
 	return s
@@ -148,9 +181,27 @@ func (s Sequence) FromDate(date string) Sequence {
 
 // ToDate starts the sequence that it ends at a given date.
 func (s Sequence) ToDate(date string) Sequence {
-	// parse date and set toDate field
-	t, _ := time.Parse("2006-01-02", date)
-	s.toDate = t
+	// validate date string
+	if date == "" {
+		return s
+	}
+
+	// parse date and set To field
+	to, _ := time.Parse("2006-01-02", date)
+	s.To = to
+
+	// create sequence
+	seq := createSequence(to, s.Now)
+
+	switch {
+	case to.Before(s.Now): // from before now
+		s.seq = seq
+	case to.After(s.Now): // from after now
+		seq = sortAsc(seq)
+		s.seq = seq
+	default:
+		return s
+	}
 
 	// steps are set
 	if s.steps != 0 {
@@ -162,6 +213,7 @@ func (s Sequence) ToDate(date string) Sequence {
 
 // SortAsc sorts a slice of dates in ascending order, i.e. 2006-01-02 comes before 2006-01-03
 func (s Sequence) SortAsc() Sequence {
+	s.ascending = true
 	s.seq = sortAsc(s.seq)
 
 	return s
@@ -169,12 +221,13 @@ func (s Sequence) SortAsc() Sequence {
 
 // SortDesc sorts a slice of dates in descending order, i.e. 2006-01-01 comes after 2006-01-02
 func (s Sequence) SortDesc() Sequence {
+	s.ascending = false
 	s.seq = sortDesc(s.seq)
 
 	return s
 }
 
-// Sequence returns the sequence slice.
+// Sequence returns the current sequence slice.
 func (s Sequence) Sequence() []time.Time {
 	return s.seq
 }
@@ -202,7 +255,28 @@ func (s Sequence) Format(layout string) []string {
 	return strings
 }
 
-func removeWeekendFromDateList(list []time.Time) []time.Time {
+func createSequence(t1, t2 time.Time) []time.Time {
+	var sequence []time.Time
+
+	// order dates
+	if t2.Before(t1) {
+		temp := t2
+		t2 = t1
+		t1 = temp
+	}
+
+	// calculate difference between t1 and t2 in days
+	diff := int(t2.Sub(t1).Hours() / 24)
+
+	for i := 0; i <= diff; i++ {
+		sequence = append(sequence, t1)
+		t1 = t1.AddDate(0, 0, +1)
+	}
+
+	return sequence
+}
+
+func removeWeekendFromSequence(list []time.Time) []time.Time {
 	if len(list) == 0 {
 		return list
 	}
@@ -218,7 +292,7 @@ func removeWeekendFromDateList(list []time.Time) []time.Time {
 	return list
 }
 
-func addWeekendToDateList(list []time.Time) []time.Time {
+func addWeekendToSequence(list []time.Time) []time.Time {
 	if len(list) == 0 {
 		return list
 	}
@@ -250,6 +324,7 @@ func addWeekendToDateList(list []time.Time) []time.Time {
 	return list
 }
 
+// sort a slice of time.Time ascending
 func sortAsc(slice []time.Time) []time.Time {
 	sort.Slice(slice, func(i, j int) bool {
 		d1 := slice[i]
@@ -262,6 +337,7 @@ func sortAsc(slice []time.Time) []time.Time {
 	return slice
 }
 
+// sort a slice of time.Time descending
 func sortDesc(slice []time.Time) []time.Time {
 	sort.Slice(slice, func(i, j int) bool {
 		d1 := slice[i]

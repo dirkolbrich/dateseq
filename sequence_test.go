@@ -7,12 +7,24 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	current := time.Now().Format("2006-01-02")
+	currentDate, _ := time.Parse("2006-01-02", current)
+
 	var testCases = []struct {
 		msg    string
 		expSeq Sequence
 	}{
-		{"testing create sequence",
-			Sequence{weekends: true},
+		{"testing create new sequence with default values",
+			Sequence{
+				Now:       currentDate,
+				From:      time.Time{},
+				To:        time.Time{},
+				Weekends:  true,
+				steps:     0,
+				ascending: true,
+				seq:       nil,
+				exclude:   nil,
+			},
 		},
 	}
 
@@ -32,11 +44,11 @@ func TestIncludeWeekends(t *testing.T) {
 	}{
 		{"testing setting weekends from false to true",
 			Sequence{},
-			Sequence{weekends: true},
+			Sequence{Weekends: true},
 		},
 		{"testing setting weekends from already true to true",
-			Sequence{weekends: true},
-			Sequence{weekends: true},
+			Sequence{Weekends: true},
+			Sequence{Weekends: true},
 		},
 	}
 
@@ -55,12 +67,12 @@ func TestExcludeWeekends(t *testing.T) {
 		expSeq Sequence
 	}{
 		{"testing setting weekends from true to false",
-			Sequence{weekends: true},
-			Sequence{weekends: false},
+			Sequence{Weekends: true},
+			Sequence{Weekends: false},
 		},
 		{"testing setting weekends from already false to false",
-			Sequence{weekends: false},
-			Sequence{weekends: false},
+			Sequence{Weekends: false},
+			Sequence{Weekends: false},
 		},
 	}
 
@@ -170,9 +182,142 @@ func TestExclude(t *testing.T) {
 	}
 }
 
+func TestFromDate(t *testing.T) {
+	timeB3, _ := time.Parse("2006-01-02", "2005-12-29")
+	timeB2, _ := time.Parse("2006-01-02", "2005-12-30")
+	timeB1, _ := time.Parse("2006-01-02", "2005-12-31")
+	current, _ := time.Parse("2006-01-02", "2006-01-01")
+	timeA1, _ := time.Parse("2006-01-02", "2006-01-02")
+	timeA2, _ := time.Parse("2006-01-02", "2006-01-03")
+	timeA3, _ := time.Parse("2006-01-02", "2006-01-04")
+
+	var testCases = []struct {
+		msg    string
+		from   string
+		seq    Sequence
+		expSeq Sequence
+	}{
+		{"testing with empty string",
+			"",
+			Sequence{
+				Now: current,
+			},
+			Sequence{
+				Now: current,
+			},
+		},
+		{"testing with From sma as Now",
+			"2006-01-01",
+			Sequence{
+				Now: current,
+			},
+			Sequence{
+				Now:  current,
+				From: current,
+			},
+		},
+		{"testing with From after Now",
+			"2006-01-04",
+			Sequence{
+				Now: current,
+			},
+			Sequence{
+				Now:  current,
+				From: timeA3,
+				seq:  []time.Time{timeA3, timeA2, timeA1, current},
+			},
+		},
+		{"testing with From before Now",
+			"2005-12-29",
+			Sequence{
+				Now: current,
+			},
+			Sequence{
+				Now:  current,
+				From: timeB3,
+				seq:  []time.Time{timeB3, timeB2, timeB1, current},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.FromDate(tc.from)
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v FromDate(%+v)\nexpected %+v\nactual   %+v", tc.msg, tc.from, tc.expSeq.Sequence(), seq.Sequence())
+		}
+	}
+}
+
+func TestToDate(t *testing.T) {
+	sun, _ := time.Parse("2006-01-02", "2006-01-01")
+	mon, _ := time.Parse("2006-01-02", "2006-01-02")
+	thue, _ := time.Parse("2006-01-02", "2006-01-03")
+	wed, _ := time.Parse("2006-01-02", "2006-01-04")
+	thur, _ := time.Parse("2006-01-02", "2006-01-05")
+	fri, _ := time.Parse("2006-01-02", "2006-01-06")
+	sat, _ := time.Parse("2006-01-02", "2006-01-07")
+
+	var testCases = []struct {
+		msg    string
+		to     string
+		seq    Sequence
+		expSeq Sequence
+	}{
+		{"testing with empty string",
+			"",
+			Sequence{
+				Now: sun,
+			},
+			Sequence{
+				Now: sun,
+			},
+		},
+		{"testing with To same as Now",
+			"2006-01-01",
+			Sequence{
+				Now: sun,
+			},
+			Sequence{
+				Now: sun,
+				To:  sun,
+			},
+		},
+		{"testing with To before Now",
+			"2006-01-01",
+			Sequence{
+				Now: wed,
+			},
+			Sequence{
+				Now: wed,
+				To:  sun,
+				seq: []time.Time{sun, mon, thue, wed},
+			},
+		},
+		{"testing with To after Now",
+			"2006-01-07",
+			Sequence{
+				Now: wed,
+			},
+			Sequence{
+				Now: wed,
+				To:  sat,
+				seq: []time.Time{wed, thur, fri, sat},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := tc.seq.ToDate(tc.to)
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v ToDate(%+v)\nexpected %+v\nactual   %+v", tc.msg, tc.to, tc.expSeq.Sequence(), seq.Sequence())
+		}
+	}
+}
+
 func TestSteps(t *testing.T) {
 	current := time.Now().Format("2006-01-02")
 	currentDate, _ := time.Parse("2006-01-02", current)
+	fixedDate, _ := time.Parse("2006-01-02", "2018-01-01") // Monday
 
 	var testCases = []struct {
 		msg    string
@@ -181,94 +326,127 @@ func TestSteps(t *testing.T) {
 		expSeq Sequence
 	}{
 		{"testing zero steps",
-			Sequence{}, 0,
-			Sequence{},
-		},
-		{"testing single positive step",
-			Sequence{}, 1,
+			New(), 0,
 			Sequence{
-				seq:   []time.Time{currentDate},
-				steps: 1,
+				Now:       currentDate,
+				Weekends:  true,
+				ascending: true,
 			},
 		},
-		{"testing single multiple positive steps",
-			Sequence{}, 3,
+		{"testing single positive step",
+			New(), 1,
 			Sequence{
+				Now:       currentDate,
+				Weekends:  true,
+				seq:       []time.Time{currentDate},
+				steps:     1,
+				ascending: true,
+			},
+		},
+		{"testing multiple positive steps",
+			New(), 3,
+			Sequence{
+				Now:      currentDate,
+				Weekends: true,
 				seq: []time.Time{
 					currentDate,
 					currentDate.AddDate(0, 0, +1),
 					currentDate.AddDate(0, 0, +2),
 				},
-				steps: 3,
+				steps:     3,
+				ascending: true,
 			},
 		},
 		{"testing single negative step",
-			Sequence{}, -1,
+			New(), -1,
 			Sequence{
-				seq:   []time.Time{currentDate},
-				steps: -1,
+				Now:       currentDate,
+				Weekends:  true,
+				seq:       []time.Time{currentDate},
+				steps:     -1,
+				ascending: true,
 			},
 		},
-		{"testing single multiple negative steps",
-			Sequence{}, -3,
+		{"testing multiple negative steps",
+			New(), -3,
 			Sequence{
+				Now:      currentDate,
+				Weekends: true,
 				seq: []time.Time{
 					currentDate.AddDate(0, 0, -2),
 					currentDate.AddDate(0, 0, -1),
 					currentDate,
 				},
-				steps: -3,
+				steps:     -3,
+				ascending: true,
 			},
 		},
-		{"testing single multiple positive steps exclude weekends",
+		{"testing multiple positive steps exclude weekends",
 			Sequence{
-				weekends: false,
-			}, 5,
+				Now:      fixedDate,
+				Weekends: false,
+			}, 6,
 			Sequence{
+				Now:      fixedDate, // Monday
+				Weekends: false,
 				seq: []time.Time{
-					currentDate,
-					currentDate.AddDate(0, 0, +1),
-					currentDate.AddDate(0, 0, +2),
-					currentDate.AddDate(0, 0, +5),
-					currentDate.AddDate(0, 0, +6),
+					fixedDate,
+					fixedDate.AddDate(0, 0, +1), // Thuesday
+					fixedDate.AddDate(0, 0, +2), // Wednesday
+					fixedDate.AddDate(0, 0, +3), // Thursday
+					fixedDate.AddDate(0, 0, +4), // Friday
+					fixedDate.AddDate(0, 0, +7), // Monday
 				},
-				steps: 5,
+				steps:     6,
+				ascending: false,
 			},
 		},
-		{"testing single multiple negative steps exclude weekends",
-			Sequence{}, -5,
+		{"testing multiple negative steps exclude weekends",
 			Sequence{
+				Now:      fixedDate,
+				Weekends: false,
+			}, -5,
+			Sequence{
+				Now:      fixedDate,
+				Weekends: false,
 				seq: []time.Time{
-					currentDate.AddDate(0, 0, -6),
-					currentDate.AddDate(0, 0, -5),
-					currentDate.AddDate(0, 0, -2),
-					currentDate.AddDate(0, 0, -1),
-					currentDate,
+					fixedDate.AddDate(0, 0, -6),
+					fixedDate.AddDate(0, 0, -5),
+					fixedDate.AddDate(0, 0, -4),
+					fixedDate.AddDate(0, 0, -3),
+					fixedDate,
 				},
-				steps: -5,
+				steps:     -5,
+				ascending: false,
 			},
 		},
-		{"testing single multiple steps with already set sequence",
+		{"testing multiple steps with already set sequence",
 			Sequence{
+				Now:      currentDate,
+				Weekends: true,
 				seq: []time.Time{
 					currentDate.AddDate(0, 0, +10),
 				},
+				ascending: true,
 			}, 3,
 			Sequence{
+				Now:      currentDate,
+				Weekends: true,
 				seq: []time.Time{
 					currentDate,
 					currentDate.AddDate(0, 0, +1),
 					currentDate.AddDate(0, 0, +2),
 				},
-				steps: 3,
+				steps:     3,
+				ascending: true,
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		seq := tc.seq.Steps(tc.steps)
+		seq := tc.seq.WithSteps(tc.steps)
 		if !reflect.DeepEqual(seq, tc.expSeq) {
-			t.Errorf("%v Steps()\nexpected %v %#v\nactual   %v %#v", tc.msg, tc.expSeq.String(), tc.expSeq, seq.String(), seq)
+			t.Errorf("%v WithSteps(%v)\nexpected %v %#v\nactual   %v %#v", tc.msg, tc.steps, tc.expSeq.String(), tc.expSeq, seq.String(), seq)
 		}
 	}
 }
@@ -288,7 +466,8 @@ func TestSortAsc(t *testing.T) {
 				seq: []time.Time{time1, time2, time3},
 			},
 			Sequence{
-				seq: []time.Time{time1, time2, time3},
+				seq:       []time.Time{time1, time2, time3},
+				ascending: true,
 			},
 		},
 		{"testing ascending sorting with desc sorted entries",
@@ -296,7 +475,8 @@ func TestSortAsc(t *testing.T) {
 				seq: []time.Time{time3, time2, time1},
 			},
 			Sequence{
-				seq: []time.Time{time1, time2, time3},
+				seq:       []time.Time{time1, time2, time3},
+				ascending: true,
 			},
 		},
 		{"testing ascending sorting with nil entries",
@@ -304,7 +484,8 @@ func TestSortAsc(t *testing.T) {
 				seq: []time.Time{},
 			},
 			Sequence{
-				seq: []time.Time{},
+				seq:       []time.Time{},
+				ascending: true,
 			},
 		},
 	}
@@ -332,7 +513,8 @@ func TestSortDesc(t *testing.T) {
 				seq: []time.Time{time3, time2, time1},
 			},
 			Sequence{
-				seq: []time.Time{time3, time2, time1},
+				seq:       []time.Time{time3, time2, time1},
+				ascending: false,
 			},
 		},
 		{"testing descending sorting with asc sorted entries",
@@ -340,7 +522,8 @@ func TestSortDesc(t *testing.T) {
 				seq: []time.Time{time1, time2, time3},
 			},
 			Sequence{
-				seq: []time.Time{time3, time2, time1},
+				seq:       []time.Time{time3, time2, time1},
+				ascending: false,
 			},
 		},
 		{"testing descending sorting with nil entries",
@@ -348,7 +531,8 @@ func TestSortDesc(t *testing.T) {
 				seq: []time.Time{},
 			},
 			Sequence{
-				seq: []time.Time{},
+				seq:       []time.Time{},
+				ascending: false,
 			},
 		},
 	}
@@ -470,12 +654,49 @@ func TestFormat(t *testing.T) {
 	}
 }
 
+func TestCreateSequence(t *testing.T) {
+	sun, _ := time.Parse("2006-01-02", "2006-01-01")
+	mon, _ := time.Parse("2006-01-02", "2006-01-02")
+	thue, _ := time.Parse("2006-01-02", "2006-01-03")
+	wed, _ := time.Parse("2006-01-02", "2006-01-04")
+	thur, _ := time.Parse("2006-01-02", "2006-01-05")
+	fri, _ := time.Parse("2006-01-02", "2006-01-06")
+	sat, _ := time.Parse("2006-01-02", "2006-01-07")
+
+	var testCases = []struct {
+		msg    string
+		t1     time.Time
+		t2     time.Time
+		expSeq []time.Time
+	}{
+		{"testing same date",
+			sun, sun,
+			[]time.Time{sun},
+		},
+		{"testing t1 before t2",
+			sun, sat,
+			[]time.Time{sun, mon, thue, wed, thur, fri, sat},
+		},
+		{"testing t2 before t1",
+			sat, sun,
+			[]time.Time{sun, mon, thue, wed, thur, fri, sat},
+		},
+	}
+
+	for _, tc := range testCases {
+		seq := createSequence(tc.t1, tc.t2)
+		if !reflect.DeepEqual(seq, tc.expSeq) {
+			t.Errorf("%v createSequence(%v, %v)\nexpected %v\nactual   %v", tc.msg, tc.t1, tc.t2, seq, tc.expSeq)
+		}
+	}
+}
+
 func TestRemoveWeekends(t *testing.T) {
 	sun, _ := time.Parse("2006-01-02", "2006-01-01")
 	mon, _ := time.Parse("2006-01-02", "2006-01-02")
 	thue, _ := time.Parse("2006-01-02", "2006-01-03")
 	wed, _ := time.Parse("2006-01-02", "2006-01-04")
-	thur, _ := time.Parse("2006-01-02", "2006-01-04")
+	thur, _ := time.Parse("2006-01-02", "2006-01-05")
 	fri, _ := time.Parse("2006-01-02", "2006-01-06")
 	sat, _ := time.Parse("2006-01-02", "2006-01-07")
 
@@ -503,9 +724,9 @@ func TestRemoveWeekends(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		list := removeWeekendFromDateList(tc.list)
+		list := removeWeekendFromSequence(tc.list)
 		if !reflect.DeepEqual(list, tc.expList) {
-			t.Errorf("%v removeWeekendFromDateList(%v)\nexpected %v\nactual   %v", tc.msg, tc.list, tc.expList, list)
+			t.Errorf("%v removeWeekendFromSequence(%v)\nexpected %v\nactual   %v", tc.msg, tc.list, tc.expList, list)
 		}
 	}
 }
@@ -547,9 +768,9 @@ func TestAddWeekends(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		list := addWeekendToDateList(tc.input)
+		list := addWeekendToSequence(tc.input)
 		if !reflect.DeepEqual(list, tc.expList) {
-			t.Errorf("%v addWeekendToDateList(%v)\nexpected %v\nactual   %v", tc.msg, tc.input, tc.expList, list)
+			t.Errorf("%v addWeekendToSequence(%v)\nexpected %v\nactual   %v", tc.msg, tc.input, tc.expList, list)
 		}
 	}
 }

@@ -12,7 +12,7 @@ Sequence is an immutable struct, each operations returns a new Sequence and leav
 
 ```go
 seq := dateseq.New()
-seq = seq.Steps(10)
+seq = seq.WithSteps(5)
 
 for k, v := range seq.Sequence() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
@@ -27,18 +27,13 @@ Returns a sequence of dates from the current date counted backwards (*assuming, 
 2. 2017-10-07 Sat
 3. 2017-10-06 Fri
 4. 2017-10-05 Thu
-5. 2017-10-04 Wed
-6. 2017-10-03 Tue
-7. 2017-10-02 Mon
-8. 2017-10-01 Sun
-9. 2017-09-30 Sat
 ```
 
 Weekends can be excluded with `ExcludeWeekends()` from the sequence series. `IncludeWeekends()` will include them again, which is also the default behavior.
 
 ```go
 seq := dateseq.New()
-seq = seq.ExcludeWeekends().Steps(10)
+seq = seq.ExcludeWeekends().WithSteps(5)
 
 for k, v := range seq.Sequence() {
     fmt.Printf("%v. %v\n", k, v.Format("2006-01-02 Mon"))
@@ -53,11 +48,6 @@ Returns:
 2. 2017-10-05 Thu
 3. 2017-10-04 Wed
 4. 2017-10-03 Tue
-5. 2017-10-02 Mon
-6. 2017-09-29 Fri
-7. 2017-09-28 Thu
-8. 2017-09-27 Wed
-9. 2017-09-26 Tue
 ```
 
 Exclude some specific dates with `Exclude(list []string)`.
@@ -69,20 +59,20 @@ exclude := []string{
     "2017-12-26",
 }
 
-seq = seq.Steps(10).Exclude(exclude)
+seq = seq.WithSteps(5).Exclude(exclude)
 
 ```
 
 The sequence methods are chainable, which allows creation and retrieving of the sequence slice in one go.
 
 ```go
-seq := dateseq.New().Steps(10).Sequence()
+seq := dateseq.New().WithSteps(5).Sequence()
 ```
 
 Need a slice with only the string representations of the dates?
 
 ```go
-seq := dateseq.New().Steps(10).String()
+seq := dateseq.New().WithSteps(5).String()
 fmt.Println(seq)
 ```
 
@@ -95,5 +85,5 @@ Returns the dates in format YYYY-MM-DD:
 For a custom output format use the `Format(layout string)` method, which returns the string in a layout defined by the `time` package.
 
 ```go
-seq := dateseq.New().Steps(10).Format("Jan 01. 2006")
+seq := dateseq.New().WithSteps(5).Format("Jan 01. 2006")
 ```
